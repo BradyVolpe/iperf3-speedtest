@@ -56,7 +56,7 @@ The `iperf3_server.sh` script should be run on **Server 1** to start and manage 
 
 This script will:
 - Stop any existing `iperf3` server instances.
-- Start a new `iperf3` server in the background.
+- Start a new `iperf3` server in the background with `10 parallel connections`
 - Check every 10 minutes to ensure the server is running and responsive.
 - Restart the server if it is unresponsive or not running.
 
@@ -91,7 +91,6 @@ This script will:
 
 The following features will be added in future updates:
 
-- Support for multiple ports (`5201` and `5202`) on the server side.
 - Management of multiple interfaces or IP addresses on the client side.
 
 ## Logs
