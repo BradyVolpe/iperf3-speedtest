@@ -9,7 +9,7 @@ INTERFACE1_PORT=5201  # Port number for interface 1
 
 INTERFACE2_IP="10.2.4.131"
 INTERFACE2_MODE="t"   # t for transmit (upstream), r for receive (downstream)
-INTERFACE2_RATE="50"  # Data rate in Mbps
+INTERFACE2_RATE="500"  # Data rate in Mbps
 INTERFACE2_ACTIVE="yes" # yes if this interface is active
 INTERFACE2_PORT=5202  # Port number for interface 2
 
