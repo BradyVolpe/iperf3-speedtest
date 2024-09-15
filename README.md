@@ -1,125 +1,95 @@
-# iPerf3 Automated Server and Client Scripts
 
-This repository contains two bash scripts for automating the setup and operation of an `iperf3` server and client on two different servers. The scripts are designed to ensure continuous network performance testing by managing `iperf3` processes and automatically restarting them if necessary.
+# iperf3 Network Testing Script
 
 ## Overview
 
-1. **Server Script (`iperf3_server.sh`)**: Runs multiple instances of an `iperf3` server on different ports, continuously checks their status, and restarts them if they stop or become unresponsive.
-2. **Client Script (`iperf3_client.sh`)**: Runs multiple `iperf3` clients for different interfaces, each configured to either transmit or receive UDP traffic, and monitors their performance.
+This repository contains scripts for running continuous upstream and downstream speed tests using `iperf3` on a client-server setup. The scripts are designed for use with MacOS on the client side and Ubuntu on the server side. The client script generates traffic to test network performance in both directions (upstream and downstream), and the server listens for these tests.
+
+## Server Script
+
+The server script (`iperf3_server.sh`) starts multiple `iperf3` server instances on ports 5201 to 5210 to handle multiple incoming sessions. It checks for any running instances of `iperf3`, kills them, and starts new server instances.
+
+### Usage
+
+1. Copy the server script to your Ubuntu server.
+2. Make the script executable:
+    ```bash
+    chmod +x iperf3_server.sh
+    ```
+3. Run the script:
+    ```bash
+    ./iperf3_server.sh
+    ```
+
+## Client Script
+
+The client script (`iperf3_client.sh`) runs multiple `iperf3` tests from a MacOS client, sending traffic to a remote server and receiving traffic from it. The script supports up to five different network interfaces, with the ability to specify the IP, direction (upstream or downstream), and bitrate for each interface.
+
+### Changes
+
+The following changes have been made to the client script:
+
+1. **Fixed-Length Speed History**: The script now maintains a maximum length of 10 entries in the speed history to prevent indefinite growth.
+2. **Timestamp and Interface Display**: Each speed entry now includes the time, interface, and direction (upstream or downstream).
+3. **Clearing Duplicated Output**: The script clears the terminal screen before each graph update to avoid duplicating lines and causing cluttered output.
+
+### Usage
+
+1. Copy the client script to your MacOS client machine.
+2. Make the script executable:
+    ```bash
+    chmod +x iperf3_client.sh
+    ```
+3. Run the script:
+    ```bash
+    ./iperf3_client.sh
+    ```
+
+### Example Output
+
+```
+Time-Series Graph (Mbps)
+Time                     | Interface | Direction  | Data Rate
+-------------------------|-----------|------------|--------------------------------------------------
+2024-09-13 20:27:25 | 10.2.4.126 | downstream | 50.0 Mbps | ##
+2024-09-13 20:27:30 | 10.2.4.131 | upstream   | 274 Mbps  | #############
+2024-09-13 20:27:35 | 10.2.4.126 | downstream | 256 Mbps  | ############
+...
+```
+
+### Key Parameters
+
+- **INTERFACE1_IP**: The IP address of the first interface.
+- **INTERFACE1_MODE**: The mode for the first interface (`t` for transmit, `r` for receive).
+- **INTERFACE1_RATE**: The data rate in Mbps for the first interface.
+- **INTERFACE1_ACTIVE**: Set to `yes` if this interface is active.
+- **INTERFACE1_PORT**: The port number for the first interface.
+
+Repeat for up to 5 interfaces as required.
+
+### Additional Features
+
+- **Automatic Restart**: The script automatically restarts `iperf3` tests if the server becomes unresponsive.
+- **Dynamic Graph Updates**: Displays a time-series ASCII graph with the latest speed data, updated every 5 seconds.
 
 ## Requirements
 
-- Two servers: 
-  - **Server 1**: Runs the `iperf3` server script.
-  - **Server 2**: Runs the `iperf3` client script.
-- `iperf3` must be installed on both servers.
-- Bash shell environment for running the scripts.
+- `iperf3` installed on both the client and server machines.
+- `awk` for processing the output.
+- Bash shell for running the scripts.
 
 ## Installation
 
-1. **Install `iperf3` on both servers:**
-
-   On Ubuntu/Debian:
-   ```bash
-   sudo apt update
-   sudo apt install iperf3
-   ```
-
-   On CentOS/RHEL:
-   ```bash
-   sudo yum install iperf3
-   ```
-
-2. **Clone this repository to both servers:**
-
-   ```bash
-   git clone https://github.com/yourusername/iperf3-scripts.git
-   cd iperf3-scripts
-   ```
-
-3. **Make the scripts executable:**
-
-   ```bash
-   chmod +x iperf3_server.sh
-   chmod +x iperf3_client.sh
-   ```
-
-## Usage
-
-### 1. Running the Server Script
-
-The `iperf3_server.sh` script should be run on **Server 1** to start and manage multiple `iperf3` server instances on ports 5201 to 5210.
-
-```bash
-./iperf3_server.sh
-```
-
-This script will:
-- Stop any existing `iperf3` server instances.
-- Start new `iperf3` server instances on ports 5201 to 5210 in the background.
-- Check every 10 minutes to ensure all servers are running and responsive.
-- Restart any server instance if it is unresponsive or not running.
-
-### 2. Running the Client Script
-
-The `iperf3_client.sh` script should be run on **Server 2** to start and manage the `iperf3` clients for each configured interface.
-
-```bash
-./iperf3_client.sh
-```
-
-This script will:
-- Start an `iperf3` client for each active interface to either transmit or receive UDP traffic to/from the remote server (`10.1.0.150`).
-- Monitor the performance and report the current speed.
-- Restart the client periodically based on the specified duration (20 seconds in this example).
-
-### Configuration
-
-#### Server Script (`iperf3_server.sh`)
-
-- **`IPERF3_PORT_START`**: The starting port number for the `iperf3` servers (default is `5201`).
-- **`IPERF3_PORT_END`**: The ending port number for the `iperf3` servers (default is `5210`).
-- **`IPERF3_SERVER_IP`**: The IP address of the server (default is `localhost`).
-
-#### Client Script (`iperf3_client.sh`)
-
-- **Interface Configuration:**
-  - Up to 5 interfaces can be configured with the following variables:
-    - **`INTERFACEX_IP`**: IP address for interface X (e.g., `INTERFACE1_IP`).
-    - **`INTERFACEX_MODE`**: Mode for interface X (`t` for transmit, `r` for receive).
-    - **`INTERFACEX_RATE`**: Data rate in Mbps for interface X.
-    - **`INTERFACEX_ACTIVE`**: Set to `yes` if the interface is active, otherwise `no`.
-    - **`INTERFACEX_PORT`**: Port number for interface X (e.g., `5201` for `INTERFACE1_PORT`).
-- **`REMOTE_SERVER`**: IP address of the remote `iperf3` server. Set to `10.1.0.150` by default.
-- **`DURATION`**: Duration of each `iperf3` run in seconds. Set to `20` seconds by default.
-- **`LOG_FILE`**: Path to the log file where `iperf3` output is stored.
-
-### Example Commands
-
-- **To start a client for receiving UDP traffic:**
-
-  ```bash
-  iperf3 -c 10.1.0.150 -u -R -b 1000M -p 5202 -B 10.2.4.131
-  ```
-
-  - This command sets up the client to receive UDP traffic from the server at `10.1.0.150` on port `5202` with a bandwidth of `1000 Mbps` on interface `10.2.4.131`.
-
-### Future Enhancements
-
-The following features will be added in future updates:
-
-- Support for dynamic port allocation and management.
-- Improved logging and error handling.
-
-## Logs
-
-- **Server Log**: `/tmp/iperf3_server_log_PORT.txt` - Contains output and errors for each `iperf3` server instance on the specified port.
-- **Client Log**: `/tmp/iperf3_log.txt` - Contains output and performance data for the `iperf3` client.
+1. Install `iperf3`:
+    ```bash
+    sudo apt-get install iperf3  # For Ubuntu
+    brew install iperf3          # For MacOS
+    ```
 
 ## Contributing
 
-Feel free to fork this repository, make improvements, and submit pull requests. Contributions are welcome!
+Feel free to contribute to the project by creating pull requests or submitting issues.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
