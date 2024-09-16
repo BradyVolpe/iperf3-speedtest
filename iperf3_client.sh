@@ -9,7 +9,7 @@ INTERFACE1_PORT=5201  # Port number for interface 1
 
 INTERFACE2_IP="10.2.4.131"
 INTERFACE2_MODE="t"   # t for transmit (upstream), r for receive (downstream)
-INTERFACE2_RATE="500"  # Data rate in Mbps
+INTERFACE2_RATE="1500"  # Data rate in Mbps
 INTERFACE2_ACTIVE="yes" # yes if this interface is active
 INTERFACE2_PORT=5202  # Port number for interface 2
 
@@ -112,18 +112,24 @@ display_ascii_graph() {
 }
 
 # Start iperf3 for each active interface
-start_iperf "$INTERFACE1_IP" "$INTERFACE1_MODE" "$INTERFACE1_RATE" "$INTERFACE1_ACTIVE" "$INTERFACE1_PORT"
-start_iperf "$INTERFACE2_IP" "$INTERFACE2_MODE" "$INTERFACE2_RATE" "$INTERFACE2_ACTIVE" "$INTERFACE2_PORT"
-start_iperf "$INTERFACE3_IP" "$INTERFACE3_MODE" "$INTERFACE3_RATE" "$INTERFACE3_ACTIVE" "$INTERFACE3_PORT"
-start_iperf "$INTERFACE4_IP" "$INTERFACE4_MODE" "$INTERFACE4_RATE" "$INTERFACE4_ACTIVE" "$INTERFACE4_PORT"
-start_iperf "$INTERFACE5_IP" "$INTERFACE5_MODE" "$INTERFACE5_RATE" "$INTERFACE5_ACTIVE" "$INTERFACE5_PORT"
+start_all_iperfs() {
+    start_iperf "$INTERFACE1_IP" "$INTERFACE1_MODE" "$INTERFACE1_RATE" "$INTERFACE1_ACTIVE" "$INTERFACE1_PORT"
+    start_iperf "$INTERFACE2_IP" "$INTERFACE2_MODE" "$INTERFACE2_RATE" "$INTERFACE2_ACTIVE" "$INTERFACE2_PORT"
+    start_iperf "$INTERFACE3_IP" "$INTERFACE3_MODE" "$INTERFACE3_RATE" "$INTERFACE3_ACTIVE" "$INTERFACE3_PORT"
+    start_iperf "$INTERFACE4_IP" "$INTERFACE4_MODE" "$INTERFACE4_RATE" "$INTERFACE4_ACTIVE" "$INTERFACE4_PORT"
+    start_iperf "$INTERFACE5_IP" "$INTERFACE5_MODE" "$INTERFACE5_RATE" "$INTERFACE5_ACTIVE" "$INTERFACE5_PORT"
+}
 
 # Initialize array for storing speed data with timestamps, interface, and direction
 declare -a speed_history=()
 
 # Main loop to manage iperf3 execution and report speed
 while true; do
-    sleep 5 # Check every 5 seconds
+    # Start all iperf3 tests continuously
+    start_all_iperfs
+
+    # Wait for the duration of the iperf3 run to complete
+    sleep $DURATION
 
     report_speed
     speed=$(awk '/[MG]bits\/sec/ {for(i=1;i<=NF;i++) if($i ~ /[MG]bits\/sec/) print $(i-1)}' $LOG_FILE | tail -n 1)
@@ -152,14 +158,4 @@ while true; do
 
     # Clear the log file for the next test run
     echo "" > $LOG_FILE
-
-    # Restart iperf3 after the duration
-    if [ "$(pgrep -x iperf3)" == "" ]; then
-        echo "iperf3 has completed or is unresponsive. Restarting..."
-        start_iperf "$INTERFACE1_IP" "$INTERFACE1_MODE" "$INTERFACE1_RATE" "$INTERFACE1_ACTIVE" "$INTERFACE1_PORT"
-        start_iperf "$INTERFACE2_IP" "$INTERFACE2_MODE" "$INTERFACE2_RATE" "$INTERFACE2_ACTIVE" "$INTERFACE2_PORT"
-        start_iperf "$INTERFACE3_IP" "$INTERFACE3_MODE" "$INTERFACE3_RATE" "$INTERFACE3_ACTIVE" "$INTERFACE3_PORT"
-        start_iperf "$INTERFACE4_IP" "$INTERFACE4_MODE" "$INTERFACE4_RATE" "$INTERFACE4_ACTIVE" "$INTERFACE4_PORT"
-        start_iperf "$INTERFACE5_IP" "$INTERFACE5_MODE" "$INTERFACE5_RATE" "$INTERFACE5_ACTIVE" "$INTERFACE5_PORT"
-    fi
 done
