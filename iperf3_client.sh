@@ -32,7 +32,7 @@ INTERFACE5_ACTIVE="no" # yes if this interface is active
 INTERFACE5_PORT=5205  # Port number for interface 5
 
 REMOTE_SERVER="10.1.0.150"
-DURATION=20 # Set duration of each iperf3 run to 20 seconds
+DURATION=300 # Set duration of each iperf3 run to 300 seconds
 LOG_FILE="/tmp/iperf3_log.txt"
 MAX_HISTORY_LENGTH=10 # Maximum number of entries in the speed history
 
@@ -129,7 +129,7 @@ while true; do
     start_all_iperfs
 
     # Wait for the duration of the iperf3 run to complete
-    sleep $DURATION
+    sleep 1
 
     report_speed
     speed=$(awk '/[MG]bits\/sec/ {for(i=1;i<=NF;i++) if($i ~ /[MG]bits\/sec/) print $(i-1)}' $LOG_FILE | tail -n 1)
